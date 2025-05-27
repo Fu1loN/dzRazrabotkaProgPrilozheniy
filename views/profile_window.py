@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, 
-                                 QLabel, QPushButton, QMenuBar, QMenu)
+                                 QLabel, QPushButton, QMenuBar, QMenu, QFormLayout)
 from PySide6.QtCore import Qt, Signal
 from .edit_window import EditWindow
 
@@ -36,65 +36,69 @@ class ProfileWindow(QMainWindow):
         # Create central widget and layout
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
-        layout = QVBoxLayout(central_widget)
-        layout.setAlignment(Qt.AlignCenter)
-        layout.setSpacing(10)
+        main_layout = QVBoxLayout(central_widget)
+        main_layout.setAlignment(Qt.AlignCenter)
+        main_layout.setSpacing(10)
         
         # Welcome title
         title_label = QLabel("Profile Information")
         title_label.setObjectName("title")
         title_label.setAlignment(Qt.AlignCenter)
-        layout.addWidget(title_label)
+        main_layout.addWidget(title_label)
         
-        layout.addSpacing(20)
+        main_layout.addSpacing(20)
         
-        # User info container
-        info_container = QWidget()
-        info_layout = QVBoxLayout(info_container)
-        info_layout.setSpacing(10)
+        # Create form layout for user data
+        form_container = QWidget()
+        form_layout = QFormLayout(form_container)
+        form_layout.setSpacing(10)
+        form_layout.setContentsMargins(20, 0, 20, 0)
         
+        # Create labels for user data
         self.login_label = QLabel()
-        self.login_label.setObjectName("info")
-        info_layout.addWidget(self.login_label)
-        
-        self.name_label = QLabel()
-        self.name_label.setObjectName("info")
-        info_layout.addWidget(self.name_label)
-        
+        self.first_name_label = QLabel()
+        self.last_name_label = QLabel()
         self.email_label = QLabel()
-        self.email_label.setObjectName("info")
-        info_layout.addWidget(self.email_label)
         
-        layout.addWidget(info_container)
+        # Set object names for styling
+        for label in [self.login_label, self.first_name_label, 
+                     self.last_name_label, self.email_label]:
+            label.setObjectName("info")
         
-        layout.addSpacing(20)
+        # Add fields to form
+        form_layout.addRow("Login:", self.login_label)
+        form_layout.addRow("First Name:", self.first_name_label)
+        form_layout.addRow("Last Name:", self.last_name_label)
+        form_layout.addRow("Email:", self.email_label)
+        
+        main_layout.addWidget(form_container)
+        
+        main_layout.addSpacing(20)
         
         # Edit button
         edit_button = QPushButton("Edit Profile")
         edit_button.setProperty("secondary", True)
         edit_button.clicked.connect(self.show_edit_window)
-        layout.addWidget(edit_button)
+        main_layout.addWidget(edit_button)
         
-        layout.addStretch()
+        main_layout.addStretch()
     
     def load_user_data(self):
-        users = self.user_model.load_users()
-        user_data = users.get(self.current_login, {})
+        # Находим индекс текущего пользователя в модели
+        current_row = -1
+        for row in range(self.user_model.rowCount()):
+            if self.user_model.data(self.user_model.index(row, 0)) == self.current_login:
+                current_row = row
+                break
         
-        self.login_label.setText(f"Login: {self.current_login}")
-        
-        first_name = user_data.get('first_name', '')
-        last_name = user_data.get('last_name', '')
-        if first_name or last_name:
-            self.name_label.setText(f"Name: {first_name} {last_name}".strip())
-        else:
-            self.name_label.setText("Name: Not set")
-        
-        email = user_data.get('email', '')
-        if email:
-            self.email_label.setText(f"Email: {email}")
-        else:
-            self.email_label.setText("Email: Not set")
+        if current_row == -1:
+            return
+            
+        # Получаем данные из модели
+        self.login_label.setText(self.user_model.data(self.user_model.index(current_row, 0)) or 'Not set')
+        self.first_name_label.setText(self.user_model.data(self.user_model.index(current_row, 1)) or 'Not set')
+        self.last_name_label.setText(self.user_model.data(self.user_model.index(current_row, 2)) or 'Not set')
+        self.email_label.setText(self.user_model.data(self.user_model.index(current_row, 3)) or 'Not set')
     
     def show_edit_window(self):
         self.edit_window = EditWindow(self.user_model, self.current_login)

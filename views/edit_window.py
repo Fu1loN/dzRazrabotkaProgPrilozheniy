@@ -6,26 +6,34 @@ from PySide6.QtGui import QColor
 
 class EditWindow(QMainWindow):
     edit_successful = Signal()
-    finished = Signal()  # Добавляем сигнал завершения
+    finished = Signal()
     
     def __init__(self, user_model, current_login):
         super().__init__()
         self.user_model = user_model
         self.current_login = current_login
+        
+        # Находим индекс текущего пользователя в модели
+        self.current_row = -1
+        for row in range(self.user_model.rowCount()):
+            if self.user_model.data(self.user_model.index(row, 0)) == current_login:
+                self.current_row = row
+                break
+                
         self.setup_ui()
         self.load_user_data()
         
     def setup_ui(self):
         self.setWindowTitle("User Management - Edit Profile")
-        self.setMinimumSize(400, 500)  # Увеличиваем минимальную высоту окна с 450 до 500
+        self.setMinimumSize(400, 550)
         
         # Create central widget and layout
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         layout = QVBoxLayout(central_widget)
         layout.setAlignment(Qt.AlignCenter)
-        layout.setSpacing(8)  # Увеличиваем расстояние между элементами
-        layout.setContentsMargins(20, 20, 20, 20)  # Добавляем отступы от краев
+        layout.setSpacing(8)
+        layout.setContentsMargins(20, 20, 20, 20)
         
         # Edit form
         title_label = QLabel("Edit Profile")
@@ -122,12 +130,17 @@ class EditWindow(QMainWindow):
         return valid
     
     def load_user_data(self):
-        users = self.user_model.load_users()
-        user_data = users.get(self.current_login, {})
+        if self.current_row == -1:
+            return
+            
+        model_index = self.user_model.index(self.current_row, 0)
+        first_name = self.user_model.data(self.user_model.index(self.current_row, 1))
+        last_name = self.user_model.data(self.user_model.index(self.current_row, 2))
+        email = self.user_model.data(self.user_model.index(self.current_row, 3))
         
-        self.first_name_input.setText(user_data.get('first_name', ''))
-        self.last_name_input.setText(user_data.get('last_name', ''))
-        self.email_input.setText(user_data.get('email', ''))
+        self.first_name_input.setText(first_name or '')
+        self.last_name_input.setText(last_name or '')
+        self.email_input.setText(email or '')
     
     def save_changes(self):
         first_name = self.first_name_input.text()
@@ -153,5 +166,5 @@ class EditWindow(QMainWindow):
             QMessageBox.warning(self, "Error", message)
     
     def closeEvent(self, event):
-        self.finished.emit()  # Испускаем сигнал при закрытии окна
+        self.finished.emit()
         super().closeEvent(event) 

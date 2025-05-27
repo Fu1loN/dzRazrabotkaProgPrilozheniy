@@ -1,20 +1,14 @@
 {
-    "akjshd": {
-        "password": "q1!Qqwerty",
-        "first_name": "oooooomagod",
-        "last_name": "godsake",
-        "email": "alskjdalks@dj.ru"
-    },
-    "aaaaaaaaa": {
-        "password": "q!1Q",
+    "1": {
+        "password": "1",
         "first_name": "",
         "last_name": "",
         "email": ""
     },
-    "1": {
-        "password": "q!1Q1111",
-        "first_name": "",
-        "last_name": "",
+    "2": {
+        "password": "q1!Qqwerty",
+        "first_name": "asd",
+        "last_name": "asd",
         "email": ""
     }
 }
